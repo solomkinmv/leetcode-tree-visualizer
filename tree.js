@@ -1,8 +1,9 @@
 class Visualizer {
     constructor() {
         let c = document.getElementById("canvas");
-        c.width = 2000;
-        c.height = 1000;
+        c.setAttribute("style", "width: 1500px; height: 1000px;");
+        c.width = 3000;
+        c.height = 2000;
         this.ctx = c.getContext("2d");
         this.ctx.font = '16px arial';
         this.ctx.textAlign = 'center';
@@ -56,11 +57,13 @@ class Tree {
             let parent = nodes[pi];
             console.log(parent);
             console.log(chunks[i]);
-            let leftNode = new Node(chunks[i]);
-            leftNode.position = this.calculatePosition(parent.position, true);
-            parent.left = leftNode;
-            nodes.push(leftNode);
-            if (i + 1 === chunks.length) continue;
+            if (chunks[i] !== "null") {
+                let leftNode = new Node(chunks[i]);
+                leftNode.position = this.calculatePosition(parent.position, true);
+                parent.left = leftNode;
+                nodes.push(leftNode);
+            }
+            if (i + 1 === chunks.length || chunks[i + 1] === "null") continue;
             let rightNode = new Node(chunks[i + 1]);
             rightNode.position = this.calculatePosition(parent.position, false);
             parent.right = rightNode;
@@ -96,15 +99,20 @@ class Tree {
 
 let input = document.getElementById("input1");
 input.oninput = function (event) {
-    let value = event.target.value;
+    parseInput(event.target.value)
+}
+
+function parseInput(value) {
     if (value[0] !== "[" || value[value.length - 1] !== "]") {
         console.log("Incorrect input")
         return;
     }
     // todo: add more validation
-    let chunks = value.slice(1, -1).split(",").map(Number);
+    let chunks = value.slice(1, -1).split(",").map(v => v.trim());
     console.log(chunks);
     let tree = new Tree(new Visualizer());
     tree.build(chunks);
     tree.bfs();
 }
+
+parseInput("[1,2,null,4,5,6]")

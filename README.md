@@ -1,2 +1,2 @@
-# leetcode-tree-vizualizer
-Vizualize leetcode tree
+# leetcode-tree-visualizer
+Visualize LeetCode tree
