@@ -9,6 +9,11 @@ class Visualizer {
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.clearRect(0, 0, c.width, c.height);
+
+        // this.ctx.beginPath();
+        // this.ctx.moveTo(0, 0);
+        // this.ctx.lineTo(40, 40)
+        // this.ctx.stroke()
     }
 
     drawNode(node) {
@@ -43,8 +48,8 @@ class Tree {
     constructor(visualizer) {
         this.root = null;
         this.startPosition = {x: 800, y: 44}
-        this.axisX = 350
-        this.axisY = 80
+        this.axisX = 350;
+        this.axisY = 80;
         this.visualizer = visualizer;
     }
 
@@ -95,6 +100,35 @@ class Tree {
             }
         }
     }
+
+    reposition() {
+        this.traverse(this.root, 0, [], this.root.radius);
+    }
+
+    traverse(node, h, hToRightmostX, minX) {
+        if (!node) return;
+        // hToRightmostX[h] = hToRightmostX[h] || 0;
+        let left = this.traverse(node.left, h + 1, hToRightmostX, minX - node.radius);
+        let right = this.traverse(node.right, h + 1, hToRightmostX, minX + node.radius);
+        node.position.y = h * this.axisY + node.radius;
+        if (!left && !right) {
+            console.log("left " + node.value);
+            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2, minX);
+        } else if (left && right) {
+            console.log("link " + node.value);
+            node.position.x = (node.left.position.x + node.right.position.x) / 2;
+        } else if (left && !right) {
+            node.position.x = node.left.position.x + node.radius / 2;
+            console.log("some left", node);
+        } else if (!left && right) {
+            // node.position.x = minX;
+            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2, minX);
+            console.log("some right", node);
+        }
+        console.log(minX, node);
+        hToRightmostX[h] = node.position.x + node.radius;
+        return node;
+    }
 }
 
 let input = document.getElementById("input1");
@@ -104,15 +138,35 @@ input.oninput = function (event) {
 
 function parseInput(value) {
     if (value[0] !== "[" || value[value.length - 1] !== "]") {
-        console.log("Incorrect input")
+        console.log("Incorrect input " + value)
         return;
     }
     // todo: add more validation
-    let chunks = value.slice(1, -1).split(",").map(v => v.trim());
+    let chunks = value.slice(1, -1).split(",").map(v => v.trim()).filter(s => s.length > 0);
+    if (chunks.length === 0) {
+        console.log("Nothing to draw");
+        return;
+    }
     console.log(chunks);
     let tree = new Tree(new Visualizer());
     tree.build(chunks);
+    tree.reposition();
     tree.bfs();
 }
 
-parseInput("[1,2,null,4,5,6]")
+// parseInput("[1,2,null,4,5,6]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]");
+// parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
+parseInput("[1,2,3,4,5,6,7]");
+parseInput("[1,2,3,4,5,null,7]");
+parseInput("[1,2,3,4,5,null,7,null,null,null,null,8]");
+// parseInput("[1,2,null,4,null,6]");
+// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
+// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
+// parseInput("[1,null,3]");
+// parseInput("[1,null,3,4]");
+// parseInput("[1,null,3,4,5]");
+// parseInput("[1]");
