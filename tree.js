@@ -102,22 +102,19 @@ class Tree {
     }
 
     reposition() {
-        this.traverse(this.root, 0, [], this.root.radius);
+        this.traverse(this.root, 0, []);
     }
 
-    traverse(node, h, hToRightmostX, minX) {
+    traverse(node, h, hToRightmostX, leanLeft) {
         if (!node) return;
         // hToRightmostX[h] = hToRightmostX[h] || 0;
-        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) - node.radius / 2);
-        let left = this.traverse(node.left, h + 1, hToRightmostX, minX - node.radius);
-        // if (!left) {
-        //     node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2, minX);
-        // }
-        let right = this.traverse(node.right, h + 1, hToRightmostX, minX + node.radius);
+        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) + (node.radius / 2) * (leanLeft ? -1 : 1));
+        let left = this.traverse(node.left, h + 1, hToRightmostX, true);
+        let right = this.traverse(node.right, h + 1, hToRightmostX, false);
         node.position.y = h * this.axisY + node.radius;
         if (!left && !right) {
             console.log("left " + node.value);
-            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2, minX);
+            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2);
         } else if (left && right) {
             console.log("link " + node.value);
             node.position.x = (node.left.position.x + node.right.position.x) / 2;
@@ -126,10 +123,9 @@ class Tree {
             console.log("some left", node);
         } else if (!left && right) {
             // node.position.x = minX;
-            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2, minX);
+            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2);
             console.log("some right", node);
         }
-        console.log(minX, node);
         hToRightmostX[h] = node.position.x + node.radius;
         return node;
     }
@@ -148,7 +144,7 @@ function parseInput(value) {
     // todo: add more validation
     let chunks = value.slice(1, -1).split(",").map(v => v.trim()).filter(s => s.length > 0);
     if (chunks.length === 0) {
-        console.log("Nothing to draw");
+        console.log("Nothing to draw"); // todo: clear canvas
         return;
     }
     console.log(chunks);
@@ -158,11 +154,11 @@ function parseInput(value) {
     tree.bfs();
 }
 
-// parseInput("[1,2,null,4,5,6]");
+parseInput("[1,2,null,4,5,6]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]");
-// parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
 parseInput("[1,2,3,4,5,6,7]");
 parseInput("[1,2,3,4,5,null,7]");
@@ -170,8 +166,9 @@ parseInput("[1,2,3,4,5,null,7,null,null,null,null,8]");
 parseInput("[1,2,3,4,5,6,7,null,null,10]");
 parseInput("[1,2,null,4,null,6]");
 parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
-// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
+parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
 // parseInput("[1,null,3]");
 // parseInput("[1,null,3,4]");
 // parseInput("[1,null,3,4,5]");
 // parseInput("[1]");
+// parseInput("[]")
