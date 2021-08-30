@@ -108,7 +108,11 @@ class Tree {
     traverse(node, h, hToRightmostX, minX) {
         if (!node) return;
         // hToRightmostX[h] = hToRightmostX[h] || 0;
+        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) - node.radius / 2);
         let left = this.traverse(node.left, h + 1, hToRightmostX, minX - node.radius);
+        // if (!left) {
+        //     node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2, minX);
+        // }
         let right = this.traverse(node.right, h + 1, hToRightmostX, minX + node.radius);
         node.position.y = h * this.axisY + node.radius;
         if (!left && !right) {
@@ -163,8 +167,9 @@ parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
 parseInput("[1,2,3,4,5,6,7]");
 parseInput("[1,2,3,4,5,null,7]");
 parseInput("[1,2,3,4,5,null,7,null,null,null,null,8]");
-// parseInput("[1,2,null,4,null,6]");
-// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
+parseInput("[1,2,3,4,5,6,7,null,null,10]");
+parseInput("[1,2,null,4,null,6]");
+parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
 // parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
 // parseInput("[1,null,3]");
 // parseInput("[1,null,3,4]");
