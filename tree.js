@@ -47,37 +47,27 @@ class Node {
 class Tree {
     constructor(visualizer) {
         this.root = null;
-        this.startPosition = {x: 800, y: 44}
-        this.axisX = 350;
         this.axisY = 80;
         this.visualizer = visualizer;
     }
 
     build(chunks) {
         this.root = new Node(chunks[0]);
-        this.root.position =  this.startPosition;
         let nodes = [this.root];
-        // todo: support null-nodes
         for (let i = 1, pi = 0; i < chunks.length; i += 2, pi++) {
             let parent = nodes[pi];
-            console.log(parent);
-            console.log(chunks[i]);
             if (chunks[i] !== "null") {
                 let leftNode = new Node(chunks[i]);
-                leftNode.position = this.calculatePosition(parent.position, true);
                 parent.left = leftNode;
                 nodes.push(leftNode);
             }
             if (i + 1 === chunks.length || chunks[i + 1] === "null") continue;
             let rightNode = new Node(chunks[i + 1]);
-            rightNode.position = this.calculatePosition(parent.position, false);
             parent.right = rightNode;
             nodes.push(rightNode);
         }
-    }
 
-    calculatePosition({x, y}, left = false) {
-        return {x: left ? x - this.axisX + y : x + this.axisX - y, y: y + this.axisY}
+        this.reposition();
     }
 
     bfs() {
@@ -149,7 +139,6 @@ function parseInput(value) {
     console.log(chunks);
     let tree = new Tree(new Visualizer());
     tree.build(chunks);
-    tree.reposition();
     tree.bfs();
 }
 
@@ -171,3 +160,4 @@ parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
 // parseInput("[1,null,3,4,5]");
 // parseInput("[1]");
 // parseInput("[]")
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,2232141241251]");
