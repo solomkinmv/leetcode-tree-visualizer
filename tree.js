@@ -107,7 +107,7 @@ class Tree {
 
     traverse(node, h, hToRightmostX, leanLeft) {
         if (!node) return;
-        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) + (leanLeft ? - node.radius / 2 : node.radius));
+        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) + (leanLeft ? - node.radius / 2 : node.radius / 2));
         let left = this.traverse(node.left, h + 1, hToRightmostX, true);
         let right = this.traverse(node.right, h + 1, hToRightmostX, false);
         node.position.y = h * this.axisY + node.radius;
