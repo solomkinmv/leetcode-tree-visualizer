@@ -102,13 +102,12 @@ class Tree {
     }
 
     reposition() {
-        this.traverse(this.root, 0, []);
+        this.traverse(this.root, 0, [], true);
     }
 
     traverse(node, h, hToRightmostX, leanLeft) {
         if (!node) return;
-        // hToRightmostX[h] = hToRightmostX[h] || 0;
-        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) + (node.radius / 2) * (leanLeft ? -1 : 1));
+        hToRightmostX[h] = Math.max(hToRightmostX[h] || 0, (hToRightmostX[h - 1] || 0) + (leanLeft ? - node.radius / 2 : node.radius));
         let left = this.traverse(node.left, h + 1, hToRightmostX, true);
         let right = this.traverse(node.right, h + 1, hToRightmostX, false);
         node.position.y = h * this.axisY + node.radius;
@@ -122,8 +121,8 @@ class Tree {
             node.position.x = node.left.position.x + node.radius / 2;
             console.log("some left", node);
         } else if (!left && right) {
-            // node.position.x = minX;
-            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2);
+            node.position.x = hToRightmostX[h] + node.radius + node.radius / 2;
+            node.position.x = (node.position.x + right.position.x - node.radius / 2) / 2;
             console.log("some right", node);
         }
         hToRightmostX[h] = node.position.x + node.radius;
@@ -160,13 +159,13 @@ parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]");
 parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
-parseInput("[1,2,3,4,5,6,7]");
-parseInput("[1,2,3,4,5,null,7]");
-parseInput("[1,2,3,4,5,null,7,null,null,null,null,8]");
-parseInput("[1,2,3,4,5,6,7,null,null,10]");
-parseInput("[1,2,null,4,null,6]");
-parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
-parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
+// parseInput("[1,2,3,4,5,6,7]");
+// parseInput("[1,2,3,4,5,null,7]");
+// parseInput("[1,2,3,4,5,null,7,null,null,null,null,8]");
+// parseInput("[1,2,3,4,5,6,7,null,null,10]");
+// parseInput("[1,2,null,4,null,6]");
+// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
+// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
 // parseInput("[1,null,3]");
 // parseInput("[1,null,3,4]");
 // parseInput("[1,null,3,4,5]");
