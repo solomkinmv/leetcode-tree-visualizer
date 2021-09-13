@@ -18,10 +18,22 @@ class Visualizer {
 
     drawNode(node) {
         let {x, y} = node.position
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, node.radius, 0, 2 * Math.PI)
-        this.ctx.stroke()
+        let width = this.ctx.measureText(node.value).width;
         this.ctx.fillText(node.value, x, y)
+        console.log(node.value + " " + width);
+        if (width < 30) {
+            this.ctx.beginPath();
+            this.ctx.arc(x, y, node.radius, 0, 2 * Math.PI)
+            this.ctx.stroke();
+        } else {
+            let additionalShift = (width - 30) / 2.;
+            this.ctx.beginPath();
+            this.ctx.arc(x - additionalShift, y, node.radius, Math.PI / 2, Math.PI * 3 / 2);
+            this.ctx.lineTo(x + additionalShift, y - node.radius);
+            this.ctx.arc(x + additionalShift, y, node.radius, - Math.PI / 2, - Math.PI * 3 / 2);
+            this.ctx.lineTo(x - additionalShift, y + node.radius);
+            this.ctx.stroke();
+        }
     }
 
     drawNodeLink(parent, child) {
@@ -160,4 +172,4 @@ parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
 // parseInput("[1,null,3,4,5]");
 // parseInput("[1]");
 // parseInput("[]")
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,2232141241251]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,2232141241251,123,1234,12345]");
