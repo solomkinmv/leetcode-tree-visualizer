@@ -18,9 +18,8 @@ class Visualizer {
 
     drawNode(node) {
         let {x, y} = node.position
-        let width = this.ctx.measureText(node.value).width;
+        let width = this.getInnerWidth(node);
         this.ctx.fillText(node.value, x, y)
-        console.log(node.value + " " + width);
         if (width < 30) {
             this.ctx.beginPath();
             this.ctx.arc(x, y, node.radius, 0, 2 * Math.PI)
@@ -30,10 +29,18 @@ class Visualizer {
             this.ctx.beginPath();
             this.ctx.arc(x - additionalShift, y, node.radius, Math.PI / 2, Math.PI * 3 / 2);
             this.ctx.lineTo(x + additionalShift, y - node.radius);
-            this.ctx.arc(x + additionalShift, y, node.radius, - Math.PI / 2, - Math.PI * 3 / 2);
+            this.ctx.arc(x + additionalShift, y, node.radius, -Math.PI / 2, -Math.PI * 3 / 2);
             this.ctx.lineTo(x - additionalShift, y + node.radius);
             this.ctx.stroke();
         }
+    }
+
+    getInnerWidth(node) {
+        return this.ctx.measureText(node.value).width;
+    }
+
+    getOuterWidth(node) {
+        return Math.max(node.radius * 2, this.getInnerWidth(node) + 10);
     }
 
     drawNodeLink(parent, child) {
@@ -113,9 +120,10 @@ class Tree {
         let left = this.traverse(node.left, h + 1, hToRightmostX, true);
         let right = this.traverse(node.right, h + 1, hToRightmostX, false);
         node.position.y = h * this.axisY + node.radius;
+        let horizontalShift = this.visualizer.getOuterWidth(node) / 2;
         if (!left && !right) {
-            console.log("left " + node.value);
-            node.position.x = Math.max((hToRightmostX[h] || 0) + node.radius + node.radius / 2);
+            console.log("leaf " + node.value + " h shift " + horizontalShift);
+            node.position.x = Math.max((hToRightmostX[h] || 0) + horizontalShift  + node.radius / 2);
         } else if (left && right) {
             console.log("link " + node.value);
             node.position.x = (node.left.position.x + node.right.position.x) / 2;
@@ -127,7 +135,7 @@ class Tree {
             node.position.x = (node.position.x + right.position.x - node.radius / 2) / 2;
             console.log("some right", node);
         }
-        hToRightmostX[h] = node.position.x + node.radius;
+        hToRightmostX[h] = node.position.x + horizontalShift;
         return node;
     }
 }
@@ -172,4 +180,5 @@ parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
 // parseInput("[1,null,3,4,5]");
 // parseInput("[1]");
 // parseInput("[]")
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,2232141241251,123,1234,12345]");
+parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,2232141241251,123,123456,1234567]");
+// parseInput("[1,2,3,4,555555,6,7]");
