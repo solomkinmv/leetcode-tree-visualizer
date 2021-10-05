@@ -9,17 +9,12 @@ class Visualizer {
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.clearRect(0, 0, c.width, c.height);
-
-        // this.ctx.beginPath();
-        // this.ctx.moveTo(0, 0);
-        // this.ctx.lineTo(40, 40)
-        // this.ctx.stroke()
     }
 
     drawNode(node) {
         let {x, y} = node.position
         let width = this.getInnerWidth(node);
-        this.ctx.fillText(node.value, x, y)
+        this.ctx.fillText(node.valueActual, x, y)
         if (width < 30) {
             this.ctx.beginPath();
             this.ctx.arc(x, y, node.radius, 0, 2 * Math.PI)
@@ -36,7 +31,7 @@ class Visualizer {
     }
 
     getInnerWidth(node) {
-        return this.ctx.measureText(node.value).width;
+        return this.ctx.measureText(node.valueActual).width;
     }
 
     getOuterWidth(node) {
@@ -54,8 +49,9 @@ class Visualizer {
 }
 
 class Node {
-    constructor(value) {
-        this.value = value
+    constructor(valueActual, valueExpected) {
+        this.valueActual = valueActual
+        this.valueExpected = valueExpected;
         this.left = null;
         this.right = null;
         this.position = {x: 0, y: 0}
@@ -70,20 +66,46 @@ class Tree {
         this.visualizer = visualizer;
     }
 
-    build(chunks) {
-        this.root = new Node(chunks[0]);
-        let nodes = [this.root];
-        for (let i = 1, pi = 0; i < chunks.length; i += 2, pi++) {
-            let parent = nodes[pi];
-            if (chunks[i] !== "null") {
-                let leftNode = new Node(chunks[i]);
+    build(chunksActual, chunksExpected) {
+        this.root = new Node(chunksActual[0]); // todo: handle zero length
+        let actualNodes = [this.root];
+        for (let i = 1, api = 0; i < chunksActual.length; i += 2, api++) {
+            // actual
+            let parent = actualNodes[api];
+            if (chunksActual[i] !== "null") {
+                let leftNode = new Node(chunksActual[i]);
                 parent.left = leftNode;
-                nodes.push(leftNode);
+                actualNodes.push(leftNode);
             }
-            if (i + 1 === chunks.length || chunks[i + 1] === "null") continue;
-            let rightNode = new Node(chunks[i + 1]);
+            if (i + 1 === chunksActual.length || chunksActual[i + 1] === "null") continue;
+            let rightNode = new Node(chunksActual[i + 1]);
             parent.right = rightNode;
-            nodes.push(rightNode);
+            actualNodes.push(rightNode);
+        }
+
+        this.root.valueExpected = chunksExpected[0]; // todo: handle zero length
+        let expectedNodes = [this.root];
+        for (let i = 1, pi = 0; i < chunksExpected.length; i+= 2, pi++) {
+            let parent = expectedNodes[pi];
+            if (chunksExpected[i] !== "null") {
+                let leftNode = parent.left;
+                if (leftNode) {
+                    leftNode.valueExpected = chunksExpected[i];
+                } else {
+                    leftNode = new Node(null, chunksExpected[i]);
+                    parent.left = leftNode;
+                }
+                expectedNodes.push(leftNode);
+            }
+            if (i + 1 === chunksExpected.length || chunksExpected[i + 1] === "null") continue;
+            let rightNode = parent.right;
+            if (rightNode) {
+                rightNode.valueExpected = chunksExpected[i + 1];
+            } else {
+                rightNode = new Node(null, chunksExpected[i + 1]);
+                parent.right = rightNode;
+            }
+            expectedNodes.push(rightNode);
         }
 
         this.reposition();
@@ -122,10 +144,10 @@ class Tree {
         node.position.y = h * this.axisY + node.radius;
         let horizontalShift = this.visualizer.getOuterWidth(node) / 2;
         if (!left && !right) {
-            console.log("leaf " + node.value + " h shift " + horizontalShift);
+            console.log("leaf " + node.valueActual + " h shift " + horizontalShift);
             node.position.x = Math.max((hToRightmostX[h] || 0) + horizontalShift  + node.radius / 2);
         } else if (left && right) {
-            console.log("link " + node.value);
+            console.log("link " + node.valueActual);
             node.position.x = (node.left.position.x + node.right.position.x) / 2;
         } else if (left && !right) {
             node.position.x = node.left.position.x + node.radius / 2;
@@ -140,45 +162,56 @@ class Tree {
     }
 }
 
-let input = document.getElementById("input1");
-input.oninput = function (event) {
-    parseInput(event.target.value)
+let inputActual = document.getElementById("input-actual");
+let inputExpected = document.getElementById("input-expected");
+inputActual.oninput = refresh;
+inputExpected.oninput = refresh;
+
+function refresh(event) {
+    displayTree(parseInput(inputActual.value), parseInput(inputExpected.value));
 }
 
-function parseInput(value) {
-    if (value[0] !== "[" || value[value.length - 1] !== "]") {
-        console.log("Incorrect input " + value)
+function parseInput(stringValue) {
+    if (!stringValue || stringValue[0] !== "[" || stringValue[stringValue.length - 1] !== "]") {
+        console.log("Incorrect input " + stringValue)
         return;
     }
     // todo: add more validation
-    let chunks = value.slice(1, -1).split(",").map(v => v.trim()).filter(s => s.length > 0);
-    if (chunks.length === 0) {
+    return stringValue.slice(1, -1).split(",").map(v => v.trim()).filter(s => s.length > 0);
+}
+
+function displayTree(inputChunksActual, inputChunksExpected) {
+    if (inputChunksActual.length === 0 && inputChunksExpected.length === 0) {
         console.log("Nothing to draw"); // todo: clear canvas
         return;
     }
-    console.log(chunks);
     let tree = new Tree(new Visualizer());
-    tree.build(chunks);
+    tree.build(inputChunksActual, inputChunksExpected);
     tree.bfs();
 }
 
-parseInput("[1,2,null,4,5,6]");
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]");
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]");
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]");
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]");
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
-// parseInput("[1,2,3,4,5,6,7]");
-// parseInput("[1,2,3,4,5,null,7]");
-// parseInput("[1,2,3,4,5,null,7,null,null,null,null,8]");
-// parseInput("[1,2,3,4,5,6,7,null,null,10]");
-// parseInput("[1,2,null,4,null,6]");
-// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
-// parseInput("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
-// parseInput("[1,null,3]");
-// parseInput("[1,null,3,4]");
-// parseInput("[1,null,3,4,5]");
-// parseInput("[1]");
-// parseInput("[]")
-parseInput("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,2232141241251,123,123456,1234567]");
-// parseInput("[1,2,3,4,555555,6,7]");
+function displayRawTree(stringValueActual, stringValueExpected) {
+    displayTree(parseInput(stringValueActual), parseInput(stringValueExpected));
+}
+
+// displayRawTree("[1,2,null,4,5,6]");
+// displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]");
+// displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]");
+// displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]");
+// displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]");
+// displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,null,19]");
+// displayRawTree("[1,2,3,4,5,6,7]");
+// displayRawTree("[1,2,3,4,5,null,7]");
+// displayRawTree("[1,2,3,4,5,null,7,null,null,null,null,8]");
+// displayRawTree("[1,2,3,4,5,6,7,null,null,10]");
+// displayRawTree("[1,2,null,4,null,6]");
+// displayRawTree("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,null,null,23]");
+// displayRawTree("[1,2,3,4,5,null,7,8,9,10,11,12,13,14,15,null,17,18,19,20,21,22,null,null,23]");
+// displayRawTree("[1,null,3]");
+// displayRawTree("[1,null,3,4]");
+// displayRawTree("[1,null,3,4,5]");
+// displayRawTree("[1]");
+// displayRawTree("[]")
+// displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,223214124125122321412412512232141241251,123,123456,1234567]");
+// displayRawTree("[1,2,3,4,555555,6,7]");
+displayRawTree("[1,null,3,5]", "[2,3,null,4]")
