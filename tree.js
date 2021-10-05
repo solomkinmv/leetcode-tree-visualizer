@@ -13,14 +13,37 @@ class Visualizer {
 
     drawNode(node) {
         let {x, y} = node.position
-        let width = this.getInnerWidth(node);
-        this.ctx.fillText(node.valueActual, x, y)
-        if (width < 30) {
+        let actualTextWidth = this.getWidth(node.valueActual);
+        let expectedTextWidth = this.getWidth(node.valueExpected);
+        let totalWidth = actualTextWidth + expectedTextWidth;
+
+        if (node.valueActual === node.valueExpected) {
+            this.ctx.fillText(node.valueActual, x, y);
+        } else if (!node.valueExpected) {
+            // todo: set color red
+            this.ctx.fillStyle = "red";
+            this.ctx.fillText(node.valueActual, x, y);
+            this.ctx.fillStyle = "black";
+        } else if (!node.valueActual) {
+            // todo: set color green
+            this.ctx.fillStyle = "green";
+            this.ctx.fillText(node.valueExpected, x, y);
+            this.ctx.fillStyle = "black";
+        } else {
+            console.log("draw dif", node);
+            this.ctx.fillStyle = "red";
+            this.ctx.fillText(node.valueActual, x - actualTextWidth / 2 - 2, y);
+            this.ctx.fillStyle = "green";
+            this.ctx.fillText(node.valueExpected, x + expectedTextWidth / 2 + 2, y);
+            this.ctx.fillStyle = "black";
+            totalWidth += 4;
+        }
+        if (totalWidth < 30) {
             this.ctx.beginPath();
             this.ctx.arc(x, y, node.radius, 0, 2 * Math.PI)
             this.ctx.stroke();
         } else {
-            let additionalShift = (width - 30) / 2.;
+            let additionalShift = (totalWidth - 30) / 2.;
             this.ctx.beginPath();
             this.ctx.arc(x - additionalShift, y, node.radius, Math.PI / 2, Math.PI * 3 / 2);
             this.ctx.lineTo(x + additionalShift, y - node.radius);
@@ -30,8 +53,13 @@ class Visualizer {
         }
     }
 
+    getWidth(value) {
+        if (!value) return 0;
+        return this.ctx.measureText(value).width;
+    }
+
     getInnerWidth(node) {
-        return this.ctx.measureText(node.valueActual).width;
+        return this.getWidth(node.valueActual) + this.getWidth(node.valueExpected);
     }
 
     getOuterWidth(node) {
@@ -214,4 +242,4 @@ function displayRawTree(stringValueActual, stringValueExpected) {
 // displayRawTree("[]")
 // displayRawTree("[1,2,3,4,5,6,7,8,9,10,11,12,null,14,15,16,17,18,19,20,21,22,23,24,null,15,null,28,29,30,31,null,null,2,3,4,5,null,6,7,5,4,null,6,null,null,null,5,4,null,null,5,null,null,null,null,null,null,null,5,null,null,null,null,null,null,5,null,null,null,null,null,null,null,4,null,5,null,5,null,null,4,3,null,223214124125122321412412512232141241251,123,123456,1234567]");
 // displayRawTree("[1,2,3,4,555555,6,7]");
-displayRawTree("[1,null,3,5]", "[2,3,null,4]")
+displayRawTree("[1,null,3,5,6,7,9]", "[2,3,null,4,5,6]")
